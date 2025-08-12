@@ -6,4 +6,3 @@ services:
     container_name: spring-boot-backend
     ports:
       - "8080:8080" # Map host port 8080 to container port 8080
-    # No depends_on or networks specific to Elasticsearch

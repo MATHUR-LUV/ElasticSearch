@@ -10,5 +10,4 @@ public class SpringBootJpaPagingSortingApplication {
 		SpringApplication.run(SpringBootJpaPagingSortingApplication.class, args);
 	}
 
-	// CommandLineRunner for loading data is now handled within CourseRepository's @PostConstruct method.
 }

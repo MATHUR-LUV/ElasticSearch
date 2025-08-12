@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Management Frontend</title>
-    <!-- Tailwind CSS CDN for styling -->
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for a modern look -->
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles to enhance Tailwind defaults */
+     
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
@@ -20,7 +20,7 @@
         }
         .container {
             background-color: #ffffff;
-            border-radius: 1.5rem; /* More rounded corners */
+            border-radius: 1.5rem; 
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             padding: 2rem;
             max-width: 1200px;
@@ -28,8 +28,8 @@
         }
         table {
             width: 100%;
-            border-collapse: separate; /* Allows border-spacing */
-            border-spacing: 0 0.5rem; /* Space between rows */
+            border-collapse: separate; 
+            border-spacing: 0 0.5rem; 
         }
         th, td {
             padding: 1rem;
@@ -48,11 +48,11 @@
             border-bottom: 1px solid #e5e7eb;
         }
         tr:last-child td {
-            border-bottom: none; /* No bottom border on the last row */
+            border-bottom: none; 
         }
         .btn {
             padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem; /* Rounded buttons */
+            border-radius: 0.75rem; 
             font-weight: 500;
             transition: all 0.2s ease-in-out;
             cursor: pointer;
@@ -98,7 +98,7 @@
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Course Catalog</h1>
 
-        <!-- Controls Section -->
+        
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 items-end">
             <div>
                 <label for="titleSearch" class="block text-sm font-medium text-gray-700 mb-1">Search by Title</label>
@@ -134,12 +134,12 @@
             </div>
         </div>
 
-        <!-- Loading and Error Messages -->
+       
         <div id="loading" class="text-center text-indigo-600 font-medium hidden mb-4">Loading courses...</div>
         <div id="error" class="text-center text-red-600 font-medium hidden mb-4"></div>
         <div id="noCourses" class="text-center text-gray-500 hidden mb-4">No courses found matching your criteria.</div>
 
-        <!-- Courses Table -->
+      
         <div class="overflow-x-auto rounded-xl">
             <table class="min-w-full">
                 <thead class="bg-gray-50 rounded-lg">
@@ -156,12 +156,12 @@
                     </tr>
                 </thead>
                 <tbody id="courseTableBody">
-                    <!-- Course data will be injected here -->
+                    
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination Controls -->
+        
         <div class="flex justify-between items-center mt-8 px-4 py-3 bg-gray-50 rounded-xl shadow-inner">
             <button id="prevPage" class="btn btn-primary" disabled>Previous</button>
             <div class="text-gray-700 font-medium">
@@ -172,21 +172,18 @@
     </div>
 
     <script>
-        // !! IMPORTANT !!
-        // Replace this with your Replit public URL if running your Spring Boot backend on Replit.
-        // E.g., const API_BASE_URL = 'https://your-repl-name.your-username.repl.co/api';
+       
         const API_BASE_URL = 'http://localhost:8080/api'; 
 
         const state = {
             currentPage: 0,
-            pageSize: 5, // Number of items per page
-            sortBy: 'id', // Default sorting column
-            sortDirection: 'asc', // Default sorting direction
-            titleFilter: '', // Filter for course titles
-            typeFilter: '' // Filter for course type
+            pageSize: 5, 
+            sortBy: 'id', 
+            sortDirection: 'asc', 
+            titleFilter: '', 
+            typeFilter: '' 
         };
 
-        // Get references to DOM elements
         const titleSearchInput = document.getElementById('titleSearch');
         const typeFilterSelect = document.getElementById('typeFilter');
         const sortBySelect = document.getElementById('sortBy');
@@ -201,24 +198,22 @@
         const currentPageDisplay = document.getElementById('currentPageDisplay');
         const totalPagesDisplay = document.getElementById('totalPagesDisplay');
 
-        /**
-         * Fetches course data from the backend API based on current state (filters, sorting, pagination).
-         */
+       
         async function fetchCourses() {
-            loadingMessage.classList.remove('hidden'); // Show loading message
-            errorMessage.classList.add('hidden');    // Hide error message
-            noCoursesMessage.classList.add('hidden'); // Hide "no courses" message
-            courseTableBody.innerHTML = '';          // Clear table content
+            loadingMessage.classList.remove('hidden'); 
+            errorMessage.classList.add('hidden');    
+            noCoursesMessage.classList.add('hidden'); 
+            courseTableBody.innerHTML = '';         
 
             let url = `${API_BASE_URL}/courses`;
             const params = new URLSearchParams();
 
-            // Determine base URL based on type filter
+           
             if (state.typeFilter) {
                 url = `${API_BASE_URL}/courses/type/${state.typeFilter}`;
             }
 
-            // Append common parameters: title search, pagination, and sorting
+           
             if (state.titleFilter) {
                 params.append('title', state.titleFilter);
             }
@@ -226,42 +221,40 @@
             params.append('size', state.pageSize);
             params.append('sort', `${state.sortBy},${state.sortDirection}`);
 
-            url += `?${params.toString()}`; // Construct the full URL with query parameters
+            url += `?${params.toString()}`; 
 
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    // Handle HTTP errors (e.g., 404, 500)
+                 
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                const data = await response.json(); // Parse JSON response
+                const data = await response.json(); 
 
-                renderCourses(data.courses);     // Display courses in the table
-                renderPagination(data);          // Update pagination controls
+                renderCourses(data.courses);    
+                renderPagination(data);         
 
             } catch (error) {
                 console.error("Failed to fetch courses:", error);
                 errorMessage.textContent = 'Error loading courses. Please try again.';
-                errorMessage.classList.remove('hidden'); // Show error message
+                errorMessage.classList.remove('hidden'); 
                 
-                // Disable pagination buttons and reset display on error
+
                 prevPageButton.disabled = true;
                 nextPageButton.disabled = true;
                 currentPageDisplay.textContent = '0';
                 totalPagesDisplay.textContent = '0';
             } finally {
-                loadingMessage.classList.add('hidden'); // Always hide loading message
+                loadingMessage.classList.add('hidden'); 
             }
         }
 
-        /**
-         * Renders the fetched course data into the HTML table.
-         * @param {Array<Object>} courses - An array of course objects.
-         */
+
+     
         function renderCourses(courses) {
-            courseTableBody.innerHTML = ''; // Clear existing rows
+            courseTableBody.innerHTML = ''; 
             if (courses.length === 0) {
-                noCoursesMessage.classList.remove('hidden'); // Show "no courses" message if array is empty
+                noCoursesMessage.classList.remove('hidden'); 
                 return;
             }
 
@@ -282,11 +275,6 @@
             });
         }
 
-        /**
-         * Returns Tailwind CSS classes for course type badges.
-         * @param {string} type - The type of the course (e.g., "COURSE", "ONE_TIME", "CLUB").
-         * @returns {string} Tailwind CSS class string.
-         */
         function getBadgeClass(type) {
             switch (type) {
                 case 'COURSE': return 'bg-blue-100 text-blue-800';
@@ -296,62 +284,52 @@
             }
         }
 
-        /**
-         * Updates the pagination controls based on the data received from the backend.
-         * @param {Object} pageData - Object containing currentPage, totalPages, totalItems from backend.
-         */
         function renderPagination(pageData) {
             const { currentPage, totalPages, totalItems } = pageData;
 
-            // Display 1-based page number for user
+   
             currentPageDisplay.textContent = currentPage + 1;
             totalPagesDisplay.textContent = totalPages;
 
-            // Enable/disable navigation buttons
             prevPageButton.disabled = currentPage === 0;
             nextPageButton.disabled = currentPage >= totalPages - 1;
 
-            // If no items, disable buttons
             if (totalItems === 0) {
                  prevPageButton.disabled = true;
                  nextPageButton.disabled = true;
             }
         }
 
-        // --- Event Listeners for User Interaction ---
 
-        // Title Search (with debounce to prevent too many requests)
         let searchTimeout;
         titleSearchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 state.titleFilter = titleSearchInput.value.trim();
-                state.currentPage = 0; // Reset to first page on new search
+                state.currentPage = 0; 
                 fetchCourses();
-            }, 300); // Wait 300ms after last input to send request
+            }, 300); 
         });
 
-        // Type Filter (re-fetches courses on change)
+
         typeFilterSelect.addEventListener('change', () => {
             state.typeFilter = typeFilterSelect.value;
-            state.currentPage = 0; // Reset to first page on new filter
+            state.currentPage = 0; 
             fetchCourses();
         });
 
-        // Sort By (re-fetches courses on change)
+
         sortBySelect.addEventListener('change', () => {
             state.sortBy = sortBySelect.value;
-            state.currentPage = 0; // Reset to first page on new sort criteria
+            state.currentPage = 0; 
             fetchCourses();
         });
 
-        // Sort Direction
+ 
         sortAscButton.addEventListener('click', () => {
             state.sortDirection = 'asc';
-            state.sortBy = 'id'; // ✨ NEW: Force sort by ID when ASC button is clicked
-            sortBySelect.value = 'id'; // ✨ NEW: Update the dropdown to reflect 'ID' selection
-
-            // Update button styles to indicate active sort direction
+            state.sortBy = 'id'; 
+            sortBySelect.value = 'id'; 
             sortAscButton.classList.add('btn-primary');
             sortAscButton.classList.remove('btn-secondary');
             sortDescButton.classList.add('btn-secondary');
@@ -360,7 +338,7 @@
         });
         sortDescButton.addEventListener('click', () => {
             state.sortDirection = 'desc';
-            // Update button styles
+       
             sortDescButton.classList.add('btn-primary');
             sortDescButton.classList.remove('btn-secondary');
             sortAscButton.classList.add('btn-secondary');
@@ -368,7 +346,7 @@
             fetchCourses();
         });
 
-        // Pagination controls
+ 
         prevPageButton.addEventListener('click', () => {
             if (state.currentPage > 0) {
                 state.currentPage--;
@@ -376,14 +354,13 @@
             }
         });
         nextPageButton.addEventListener('click', () => {
-            // Note: The backend handles if this goes beyond totalPages
+      
             state.currentPage++;
             fetchCourses();
         });
 
-        // Initial fetch when the page first loads
         document.addEventListener('DOMContentLoaded', () => {
-            // Set initial button styling for default sort direction
+          
             if (state.sortDirection === 'asc') {
                 sortAscButton.classList.add('btn-primary');
                 sortDescButton.classList.add('btn-secondary');
@@ -391,7 +368,7 @@
                 sortDescButton.classList.add('btn-primary');
                 sortAscButton.classList.add('btn-secondary');
             }
-            fetchCourses(); // Load initial data
+            fetchCourses(); 
         });
     </script>
 </body>

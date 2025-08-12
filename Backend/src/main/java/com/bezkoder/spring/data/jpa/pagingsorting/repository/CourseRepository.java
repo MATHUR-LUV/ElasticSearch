@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger; // For generating new IDs
+import java.util.concurrent.atomic.AtomicInteger; 
 import java.util.stream.Collectors;
 
-// Spring Data classes for pagination and sorting (not tied to a specific database)
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +29,7 @@ public class CourseRepository {
 
     private List<Course> courses;
     private final ObjectMapper objectMapper;
-    private AtomicInteger idCounter = new AtomicInteger(0); // For generating new IDs
+    private AtomicInteger idCounter = new AtomicInteger(0);
 
     public CourseRepository() {
         this.objectMapper = new ObjectMapper();
@@ -44,7 +44,7 @@ public class CourseRepository {
                 this.courses = objectMapper.readValue(inputStream, new TypeReference<List<Course>>() {});
                 System.out.println("Loaded " + courses.size() + " courses from sample-courses.json");
 
-                // Initialize ID counter to be greater than max existing ID for new courses
+
                 this.courses.stream().mapToInt(Course::getId).max().ifPresent(maxId -> idCounter.set(maxId + 1));
 
             }
@@ -55,16 +55,15 @@ public class CourseRepository {
     }
 
     public List<Course> findAll() {
-        return new ArrayList<>(courses); // Return a copy
+        return new ArrayList<>(courses); 
     }
 
-    public Optional<Course> findById(int id) { // ID is int now
+    public Optional<Course> findById(int id) { 
         return courses.stream()
                       .filter(course -> course.getId() == id)
                       .findFirst();
     }
 
-    // Used by /sortedcourses endpoint
     public List<Course> findByTitleContaining(String title, Sort sort) {
         List<Course> filteredCourses = courses.stream()
                 .filter(course -> course.getTitle().toLowerCase().contains(title.toLowerCase()))
@@ -72,13 +71,12 @@ public class CourseRepository {
         return applySort(filteredCourses, sort);
     }
 
-    // Used by /courses/type/{type} endpoint
     public Page<Course> findByType(String type, Pageable pageable) {
         List<Course> filteredCourses = courses.stream()
                 .filter(course -> course.getType().equalsIgnoreCase(type))
                 .collect(Collectors.toList());
 
-        filteredCourses = applySort(filteredCourses, pageable.getSort()); // Apply sorting
+        filteredCourses = applySort(filteredCourses, pageable.getSort()); 
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), filteredCourses.size());
@@ -91,11 +89,11 @@ public class CourseRepository {
     }
 
     public Course save(Course course) {
-        if (course.getId() == 0) { // If ID is 0 (default int value), it's a new course
-            course.setId(idCounter.getAndIncrement()); // Assign a new unique ID
+        if (course.getId() == 0) { 
+            course.setId(idCounter.getAndIncrement()); 
             this.courses.add(course);
         } else {
-            // Find and update existing course
+   
             Optional<Course> existingCourseOpt = findById(course.getId());
             if (existingCourseOpt.isPresent()) {
                 Course existingCourse = existingCourseOpt.get();
@@ -109,22 +107,22 @@ public class CourseRepository {
                 existingCourse.setPrice(course.getPrice());
                 existingCourse.setNextSessionDate(course.getNextSessionDate());
             } else {
-                this.courses.add(course); // Add if ID provided but not found
+                this.courses.add(course); 
             }
         }
         return course;
     }
 
-    public void deleteById(int id) { // ID is int now
+    public void deleteById(int id) { 
         courses.removeIf(course -> course.getId() == id);
     }
 
     public void deleteAll() {
         this.courses.clear();
-        this.idCounter.set(1); // Reset ID counter
+        this.idCounter.set(1); 
     }
 
-    // Helper method to apply sorting based on Spring Data Sort object
+
     public List<Course> applySort(List<Course> list, Sort sort) {
         if (sort == null || !sort.iterator().hasNext()) {
             return list;
@@ -135,7 +133,7 @@ public class CourseRepository {
             Comparator<Course> currentComparator = null;
             switch (order.getProperty()) {
                 case "id":
-                    currentComparator = Comparator.comparingInt(Course::getId); // Use comparingInt for int
+                    currentComparator = Comparator.comparingInt(Course::getId); 
                     break;
                 case "title":
                     currentComparator = Comparator.comparing(Course::getTitle);
@@ -153,7 +151,7 @@ public class CourseRepository {
                     currentComparator = Comparator.comparingInt(Course::getMaxAge);
                     break;
                 case "price":
-                    currentComparator = Comparator.comparingDouble(Course::getPrice); // Use comparingDouble for double
+                    currentComparator = Comparator.comparingDouble(Course::getPrice); 
                     break;
                 case "nextSessionDate":
                     currentComparator = Comparator.comparing(Course::getNextSessionDate);
@@ -180,7 +178,7 @@ public class CourseRepository {
         return list;
     }
 
-    // --- Pagination helpers for controller (simplified) ---
+   
     public Page<Course> findAll(Pageable pageable) {
         List<Course> allCourses = new ArrayList<>(courses);
         allCourses = applySort(allCourses, pageable.getSort());

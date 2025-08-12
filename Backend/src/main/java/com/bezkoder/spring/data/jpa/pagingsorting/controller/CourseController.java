@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bezkoder.spring.data.jpa.pagingsorting.model.Course;
 import com.bezkoder.spring.data.jpa.pagingsorting.repository.CourseRepository;
 
-@CrossOrigin(origins = "*") // Adjust this to your frontend's origin (e.g., http://127.0.0.1:5500 or your Replit frontend URL)
+@CrossOrigin(origins = "*") 
 @RestController
 @RequestMapping("/api")
 public class CourseController {
@@ -62,7 +62,7 @@ public class CourseController {
         orders.add(new Order(getSortDirection(sort[1]), sort[0]));
       }
 
-      // Use the in-memory repository's method
+  
       List<Course> courses = courseRepository.findByTitleContaining("", Sort.by(orders));
 
       if (courses.isEmpty()) {
@@ -140,7 +140,7 @@ public class CourseController {
 
       Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
-      // Use the in-memory repository's findByType method
+
       Page<Course> pageCourses = courseRepository.findByType(type, pagingSort);
 
       List<Course> courses = pageCourses.getContent();
@@ -159,7 +159,7 @@ public class CourseController {
   }
 
   @GetMapping("/courses/{id}")
-  public ResponseEntity<Course> getCourseById(@PathVariable("id") int id) { // Parameter is int
+  public ResponseEntity<Course> getCourseById(@PathVariable("id") int id) { 
     Optional<Course> courseData = courseRepository.findById(id);
 
     if (courseData.isPresent()) {
@@ -172,7 +172,7 @@ public class CourseController {
   @PostMapping("/courses")
   public ResponseEntity<Course> createCourse(@RequestBody Course course) {
     try {
-      // ID will be assigned by the in-memory repository if 0
+      
       Course _course = courseRepository.save(course);
       return new ResponseEntity<>(_course, HttpStatus.CREATED);
     } catch (Exception e) {
@@ -182,12 +182,12 @@ public class CourseController {
   }
 
   @PutMapping("/courses/{id}")
-  public ResponseEntity<Course> updateCourse(@PathVariable("id") int id, @RequestBody Course course) { // Parameter is int
+  public ResponseEntity<Course> updateCourse(@PathVariable("id") int id, @RequestBody Course course) { 
     Optional<Course> courseData = courseRepository.findById(id);
 
     if (courseData.isPresent()) {
       Course _course = courseData.get();
-      _course.setId(id); // Ensure the ID from the path variable is set
+      _course.setId(id);
       _course.setTitle(course.getTitle());
       _course.setDescription(course.getDescription());
       _course.setCategory(course.getCategory());
@@ -206,7 +206,7 @@ public class CourseController {
   }
 
   @DeleteMapping("/courses/{id}")
-  public ResponseEntity<HttpStatus> deleteCourse(@PathVariable("id") int id) { // Parameter is int
+  public ResponseEntity<HttpStatus> deleteCourse(@PathVariable("id") int id) {
     try {
       courseRepository.deleteById(id);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
