@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Management Frontend</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to enhance Tailwind defaults */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate; /* Allows border-spacing */
+            border-spacing: 0 0.5rem; /* Space between rows */
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+        }
+        th {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+        }
+        td {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        tr:last-child td {
+            border-bottom: none; /* No bottom border on the last row */
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem; /* Rounded buttons */
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: #ffffff;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #4338ca;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #d1d5db;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .input-field, .select-field {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            width: 100%;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .input-field:focus, .select-field:focus {
+            border-color: #818cf8;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center p-8">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Course Catalog</h1>
+
+        <!-- Controls Section -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 items-end">
+            <div>
+                <label for="titleSearch" class="block text-sm font-medium text-gray-700 mb-1">Search by Title</label>
+                <input type="text" id="titleSearch" class="input-field" placeholder="e.g., Algebra, Physics">
+            </div>
+
+            <div>
+                <label for="typeFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Type</label>
+                <select id="typeFilter" class="select-field">
+                    <option value="">All Types</option>
+                    <option value="COURSE">Course</option>
+                    <option value="ONE_TIME">One Time Session</option>
+                    <option value="CLUB">Club</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                <select id="sortBy" class="select-field">
+                    <option value="id">ID</option>
+                    <option value="title">Title</option>
+                    <option value="category">Category</option>
+                    <option value="type">Type</option>
+                    <option value="minAge">Min Age</option>
+                    <option value="price">Price</option>
+                    <option value="nextSessionDate">Next Session</option>
+                </select>
+            </div>
+
+            <div class="flex space-x-3">
+                <button id="sortAsc" class="btn btn-secondary w-1/2">ASC</button>
+                <button id="sortDesc" class="btn btn-secondary w-1/2">DESC</button>
+            </div>
+        </div>
+
+        <!-- Loading and Error Messages -->
+        <div id="loading" class="text-center text-indigo-600 font-medium hidden mb-4">Loading courses...</div>
+        <div id="error" class="text-center text-red-600 font-medium hidden mb-4"></div>
+        <div id="noCourses" class="text-center text-gray-500 hidden mb-4">No courses found matching your criteria.</div>
+
+        <!-- Courses Table -->
+        <div class="overflow-x-auto rounded-xl">
+            <table class="min-w-full">
+                <thead class="bg-gray-50 rounded-lg">
+                    <tr>
+                        <th class="rounded-tl-lg">ID</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Grade Range</th>
+                        <th>Min Age</th>
+                        <th>Max Age</th>
+                        <th>Price</th>
+                        <th class="rounded-tr-lg">Next Session</th>
+                    </tr>
+                </thead>
+                <tbody id="courseTableBody">
+                    <!-- Course data will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="flex justify-between items-center mt-8 px-4 py-3 bg-gray-50 rounded-xl shadow-inner">
+            <button id="prevPage" class="btn btn-primary" disabled>Previous</button>
+            <div class="text-gray-700 font-medium">
+                Page <span id="currentPageDisplay">1</span> of <span id="totalPagesDisplay">1</span>
+            </div>
+            <button id="nextPage" class="btn btn-primary" disabled>Next</button>
+        </div>
+    </div>
+
+    <script>
+        // !! IMPORTANT !!
+        // Replace this with your Replit public URL if running your Spring Boot backend on Replit.
+        // E.g., const API_BASE_URL = 'https://your-repl-name.your-username.repl.co/api';
+        const API_BASE_URL = 'http://localhost:8080/api'; 
+
+        const state = {
+            currentPage: 0,
+            pageSize: 5, // Number of items per page
+            sortBy: 'id', // Default sorting column
+            sortDirection: 'asc', // Default sorting direction
+            titleFilter: '', // Filter for course titles
+            typeFilter: '' // Filter for course type
+        };
+
+        // Get references to DOM elements
+        const titleSearchInput = document.getElementById('titleSearch');
+        const typeFilterSelect = document.getElementById('typeFilter');
+        const sortBySelect = document.getElementById('sortBy');
+        const sortAscButton = document.getElementById('sortAsc');
+        const sortDescButton = document.getElementById('sortDesc');
+        const courseTableBody = document.getElementById('courseTableBody');
+        const loadingMessage = document.getElementById('loading');
+        const errorMessage = document.getElementById('error');
+        const noCoursesMessage = document.getElementById('noCourses');
+        const prevPageButton = document.getElementById('prevPage');
+        const nextPageButton = document.getElementById('nextPage');
+        const currentPageDisplay = document.getElementById('currentPageDisplay');
+        const totalPagesDisplay = document.getElementById('totalPagesDisplay');
+
+        /**
+         * Fetches course data from the backend API based on current state (filters, sorting, pagination).
+         */
+        async function fetchCourses() {
+            loadingMessage.classList.remove('hidden'); // Show loading message
+            errorMessage.classList.add('hidden');    // Hide error message
+            noCoursesMessage.classList.add('hidden'); // Hide "no courses" message
+            courseTableBody.innerHTML = '';          // Clear table content
+
+            let url = `${API_BASE_URL}/courses`;
+            const params = new URLSearchParams();
+
+            // Determine base URL based on type filter
+            if (state.typeFilter) {
+                url = `${API_BASE_URL}/courses/type/${state.typeFilter}`;
+            }
+
+            // Append common parameters: title search, pagination, and sorting
+            if (state.titleFilter) {
+                params.append('title', state.titleFilter);
+            }
+            params.append('page', state.currentPage);
+            params.append('size', state.pageSize);
+            params.append('sort', `${state.sortBy},${state.sortDirection}`);
+
+            url += `?${params.toString()}`; // Construct the full URL with query parameters
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    // Handle HTTP errors (e.g., 404, 500)
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json(); // Parse JSON response
+
+                renderCourses(data.courses);     // Display courses in the table
+                renderPagination(data);          // Update pagination controls
+
+            } catch (error) {
+                console.error("Failed to fetch courses:", error);
+                errorMessage.textContent = 'Error loading courses. Please try again.';
+                errorMessage.classList.remove('hidden'); // Show error message
+                
+                // Disable pagination buttons and reset display on error
+                prevPageButton.disabled = true;
+                nextPageButton.disabled = true;
+                currentPageDisplay.textContent = '0';
+                totalPagesDisplay.textContent = '0';
+            } finally {
+                loadingMessage.classList.add('hidden'); // Always hide loading message
+            }
+        }
+
+        /**
+         * Renders the fetched course data into the HTML table.
+         * @param {Array<Object>} courses - An array of course objects.
+         */
+        function renderCourses(courses) {
+            courseTableBody.innerHTML = ''; // Clear existing rows
+            if (courses.length === 0) {
+                noCoursesMessage.classList.remove('hidden'); // Show "no courses" message if array is empty
+                return;
+            }
+
+            courses.forEach(course => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="whitespace-nowrap">${course.id}</td>
+                    <td class="font-medium text-gray-900">${course.title}</td>
+                    <td>${course.category}</td>
+                    <td><span class="inline-block px-3 py-1 text-xs font-semibold rounded-full ${getBadgeClass(course.type)}">${course.type.replace('_', ' ')}</span></td>
+                    <td>${course.gradeRange}</td>
+                    <td>${course.minAge}</td>
+                    <td>${course.maxAge}</td>
+                    <td class="font-semibold text-indigo-600">$${course.price.toFixed(2)}</td>
+                    <td>${new Date(course.nextSessionDate).toLocaleDateString()} ${new Date(course.nextSessionDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}</td>
+                `;
+                courseTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Returns Tailwind CSS classes for course type badges.
+         * @param {string} type - The type of the course (e.g., "COURSE", "ONE_TIME", "CLUB").
+         * @returns {string} Tailwind CSS class string.
+         */
+        function getBadgeClass(type) {
+            switch (type) {
+                case 'COURSE': return 'bg-blue-100 text-blue-800';
+                case 'ONE_TIME': return 'bg-green-100 text-green-800';
+                case 'CLUB': return 'bg-purple-100 text-purple-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        /**
+         * Updates the pagination controls based on the data received from the backend.
+         * @param {Object} pageData - Object containing currentPage, totalPages, totalItems from backend.
+         */
+        function renderPagination(pageData) {
+            const { currentPage, totalPages, totalItems } = pageData;
+
+            // Display 1-based page number for user
+            currentPageDisplay.textContent = currentPage + 1;
+            totalPagesDisplay.textContent = totalPages;
+
+            // Enable/disable navigation buttons
+            prevPageButton.disabled = currentPage === 0;
+            nextPageButton.disabled = currentPage >= totalPages - 1;
+
+            // If no items, disable buttons
+            if (totalItems === 0) {
+                 prevPageButton.disabled = true;
+                 nextPageButton.disabled = true;
+            }
+        }
+
+        // --- Event Listeners for User Interaction ---
+
+        // Title Search (with debounce to prevent too many requests)
+        let searchTimeout;
+        titleSearchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                state.titleFilter = titleSearchInput.value.trim();
+                state.currentPage = 0; // Reset to first page on new search
+                fetchCourses();
+            }, 300); // Wait 300ms after last input to send request
+        });
+
+        // Type Filter (re-fetches courses on change)
+        typeFilterSelect.addEventListener('change', () => {
+            state.typeFilter = typeFilterSelect.value;
+            state.currentPage = 0; // Reset to first page on new filter
+            fetchCourses();
+        });
+
+        // Sort By (re-fetches courses on change)
+        sortBySelect.addEventListener('change', () => {
+            state.sortBy = sortBySelect.value;
+            state.currentPage = 0; // Reset to first page on new sort criteria
+            fetchCourses();
+        });
+
+        // Sort Direction (re-fetches courses on change)
+        sortAscButton.addEventListener('click', () => {
+            state.sortDirection = 'asc';
+            // Update button styles to indicate active sort direction
+            sortAscButton.classList.add('btn-primary');
+            sortAscButton.classList.remove('btn-secondary');
+            sortDescButton.classList.add('btn-secondary');
+            sortDescButton.classList.remove('btn-primary');
+            fetchCourses();
+        });
+        sortDescButton.addEventListener('click', () => {
+            state.sortDirection = 'desc';
+            // Update button styles
+            sortDescButton.classList.add('btn-primary');
+            sortDescButton.classList.remove('btn-secondary');
+            sortAscButton.classList.add('btn-secondary');
+            sortAscButton.classList.remove('btn-primary');
+            fetchCourses();
+        });
+
+        // Pagination controls
+        prevPageButton.addEventListener('click', () => {
+            if (state.currentPage > 0) {
+                state.currentPage--;
+                fetchCourses();
+            }
+        });
+        nextPageButton.addEventListener('click', () => {
+            // Note: The backend handles if this goes beyond totalPages
+            state.currentPage++;
+            fetchCourses();
+        });
+
+        // Initial fetch when the page first loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial button styling for default sort direction
+            if (state.sortDirection === 'asc') {
+                sortAscButton.classList.add('btn-primary');
+                sortDescButton.classList.add('btn-secondary');
+            } else {
+                sortDescButton.classList.add('btn-primary');
+                sortAscButton.classList.add('btn-secondary');
+            }
+            fetchCourses(); // Load initial data
+        });
+    </script>
+</body>
+</html>
