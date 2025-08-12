@@ -20,7 +20,9 @@
 	</properties>
 
 	<dependencies>
-		<!-- Essential for building RESTful web applications with Spring Boot -->
+		<!-- Essential for building RESTful web applications with Spring Boot.
+		     This transitively brings in 'spring-data-commons' which contains
+		     Sort, Page, Pageable, and PageImpl. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -30,6 +32,11 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<!-- For Java 8 Date/Time types (like OffsetDateTime) in Jackson -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
 		</dependency>
 
 		<!-- Test dependencies for Spring Boot applications -->
@@ -44,26 +51,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons -->
 <dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-commons</artifactId>
     <version>4.0.0-M4</version>
 </dependency>
-
-		<!--
-		Removed dependencies for database connectivity (JPA and MySQL)
-		as the application now loads data from a JSON file.
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		-->
+		<!-- Removed Elasticsearch and JPA dependencies -->
 	</dependencies>
 
 	<build>

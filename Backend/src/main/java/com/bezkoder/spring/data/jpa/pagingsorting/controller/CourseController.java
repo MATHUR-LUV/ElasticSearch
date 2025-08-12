@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors; // Added for stream operations
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,17 +27,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bezkoder.spring.data.jpa.pagingsorting.model.Course; // Changed from Tutorial
-import com.bezkoder.spring.data.jpa.pagingsorting.repository.CourseRepository; // Changed from TutorialRepository
+import com.bezkoder.spring.data.jpa.pagingsorting.model.Course;
+import com.bezkoder.spring.data.jpa.pagingsorting.repository.CourseRepository;
 
-
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Adjust this to your frontend's origin (e.g., http://127.0.0.1:5500 or your Replit frontend URL)
 @RestController
 @RequestMapping("/api")
-public class CourseController { // Renamed from TutorialController
+public class CourseController {
 
   @Autowired
-  CourseRepository courseRepository; // Changed from tutorialRepository
+  CourseRepository courseRepository;
 
   private Sort.Direction getSortDirection(String direction) {
     if (direction.equals("asc")) {
@@ -48,8 +47,8 @@ public class CourseController { // Renamed from TutorialController
     return Sort.Direction.ASC;
   }
 
-  @GetMapping("/sortedcourses") // Updated endpoint name
-  public ResponseEntity<List<Course>> getAllCourses(@RequestParam(defaultValue = "id,desc") String[] sort) { // Changed to Course
+  @GetMapping("/sortedcourses")
+  public ResponseEntity<List<Course>> getAllCourses(@RequestParam(defaultValue = "id,desc") String[] sort) {
 
     try {
       List<Order> orders = new ArrayList<Order>();
@@ -63,7 +62,7 @@ public class CourseController { // Renamed from TutorialController
         orders.add(new Order(getSortDirection(sort[1]), sort[0]));
       }
 
-      // Using the findByTitleContaining with an empty title to get all, then applying sort
+      // Use the in-memory repository's method
       List<Course> courses = courseRepository.findByTitleContaining("", Sort.by(orders));
 
       if (courses.isEmpty()) {
@@ -72,14 +71,13 @@ public class CourseController { // Renamed from TutorialController
 
       return new ResponseEntity<>(courses, HttpStatus.OK);
     } catch (Exception e) {
-      // Log the exception for debugging
       e.printStackTrace();
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @GetMapping("/courses") // Updated endpoint name
-  public ResponseEntity<Map<String, Object>> getAllCoursesPage( // Changed to Course
+  @GetMapping("/courses")
+  public ResponseEntity<Map<String, Object>> getAllCoursesPage(
       @RequestParam(required = false) String title,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "3") int size,
@@ -99,16 +97,17 @@ public class CourseController { // Renamed from TutorialController
 
       Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
-      Page<Course> pageCourses; // Changed to Course
-      if (title == null || title.isEmpty())
+      Page<Course> pageCourses;
+      if (title == null || title.isEmpty()) {
         pageCourses = courseRepository.findAll(pagingSort);
-      else
+      } else {
         pageCourses = courseRepository.findByTitleContaining(title, pagingSort);
+      }
 
-      List<Course> courses = pageCourses.getContent(); // Changed to Course
+      List<Course> courses = pageCourses.getContent();
 
       Map<String, Object> response = new HashMap<>();
-      response.put("courses", courses); // Changed key to 'courses'
+      response.put("courses", courses);
       response.put("currentPage", pageCourses.getNumber());
       response.put("totalItems", pageCourses.getTotalElements());
       response.put("totalPages", pageCourses.getTotalPages());
@@ -120,9 +119,9 @@ public class CourseController { // Renamed from TutorialController
     }
   }
 
-  @GetMapping("/courses/type/{type}") // New endpoint for filtering by type (similar to published)
+  @GetMapping("/courses/type/{type}")
   public ResponseEntity<Map<String, Object>> findByType(
-      @PathVariable("type") String type, // Expect type as path variable
+      @PathVariable("type") String type,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "3") int size,
       @RequestParam(defaultValue = "id,desc") String[] sort) {
@@ -141,28 +140,16 @@ public class CourseController { // Renamed from TutorialController
 
       Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
-      // In-memory filter for specific type
-      List<Course> filteredCourses = courseRepository.findAll().stream()
-              .filter(course -> course.getType().equalsIgnoreCase(type))
-              .collect(Collectors.toList());
+      // Use the in-memory repository's findByType method
+      Page<Course> pageCourses = courseRepository.findByType(type, pagingSort);
 
-      // Manually paginate and sort the filtered list
-      int start = (int) pagingSort.getOffset();
-      int end = Math.min((start + pagingSort.getPageSize()), filteredCourses.size());
-      List<Course> pagedCoursesContent = new ArrayList<>();
-      if (start < end) {
-          pagedCoursesContent = filteredCourses.subList(start, end);
-      }
-
-      // Apply sorting to the paged content if needed (though already sorted in CourseRepository)
-      List<Course> sortedPagedContent = courseRepository.applySort(pagedCoursesContent, pagingSort.getSort());
-
+      List<Course> courses = pageCourses.getContent();
 
       Map<String, Object> response = new HashMap<>();
-      response.put("courses", sortedPagedContent);
-      response.put("currentPage", pagingSort.getPageNumber());
-      response.put("totalItems", (long) filteredCourses.size()); // Total items before pagination
-      response.put("totalPages", (int) Math.ceil((double) filteredCourses.size() / pagingSort.getPageSize()));
+      response.put("courses", courses);
+      response.put("currentPage", pageCourses.getNumber());
+      response.put("totalItems", pageCourses.getTotalElements());
+      response.put("totalPages", pageCourses.getTotalPages());
 
       return new ResponseEntity<>(response, HttpStatus.OK);
     } catch (Exception e) {
@@ -171,9 +158,8 @@ public class CourseController { // Renamed from TutorialController
     }
   }
 
-
-  @GetMapping("/courses/{id}") // Updated endpoint name
-  public ResponseEntity<Course> getCourseById(@PathVariable("id") String id) { // Changed to Course and String id
+  @GetMapping("/courses/{id}")
+  public ResponseEntity<Course> getCourseById(@PathVariable("id") int id) { // Parameter is int
     Optional<Course> courseData = courseRepository.findById(id);
 
     if (courseData.isPresent()) {
@@ -183,22 +169,11 @@ public class CourseController { // Renamed from TutorialController
     }
   }
 
-  @PostMapping("/courses") // Updated endpoint name
-  public ResponseEntity<Course> createCourse(@RequestBody Course course) { // Changed to Course
+  @PostMapping("/courses")
+  public ResponseEntity<Course> createCourse(@RequestBody Course course) {
     try {
-      // Simulate ID generation and saving
-      Course _course = courseRepository.save(new Course(
-          null, // Let repository generate ID
-          course.getTitle(),
-          course.getDescription(),
-          course.getCategory(),
-          course.getType(),
-          course.getGradeRange(),
-          course.getMinAge(),
-          course.getMaxAge(),
-          course.getPrice(),
-          course.getNextSessionDate() != null ? course.getNextSessionDate() : OffsetDateTime.now() // Default date if not provided
-      ));
+      // ID will be assigned by the in-memory repository if 0
+      Course _course = courseRepository.save(course);
       return new ResponseEntity<>(_course, HttpStatus.CREATED);
     } catch (Exception e) {
       e.printStackTrace();
@@ -206,12 +181,13 @@ public class CourseController { // Renamed from TutorialController
     }
   }
 
-  @PutMapping("/courses/{id}") // Updated endpoint name
-  public ResponseEntity<Course> updateCourse(@PathVariable("id") String id, @RequestBody Course course) { // Changed to Course and String id
+  @PutMapping("/courses/{id}")
+  public ResponseEntity<Course> updateCourse(@PathVariable("id") int id, @RequestBody Course course) { // Parameter is int
     Optional<Course> courseData = courseRepository.findById(id);
 
     if (courseData.isPresent()) {
       Course _course = courseData.get();
+      _course.setId(id); // Ensure the ID from the path variable is set
       _course.setTitle(course.getTitle());
       _course.setDescription(course.getDescription());
       _course.setCategory(course.getCategory());
@@ -221,14 +197,16 @@ public class CourseController { // Renamed from TutorialController
       _course.setMaxAge(course.getMaxAge());
       _course.setPrice(course.getPrice());
       _course.setNextSessionDate(course.getNextSessionDate());
-      return new ResponseEntity<>(courseRepository.save(_course), HttpStatus.OK);
+      
+      Course updatedCourse = courseRepository.save(_course);
+      return new ResponseEntity<>(updatedCourse, HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
   }
 
-  @DeleteMapping("/courses/{id}") // Updated endpoint name
-  public ResponseEntity<HttpStatus> deleteCourse(@PathVariable("id") String id) { // Changed to String id
+  @DeleteMapping("/courses/{id}")
+  public ResponseEntity<HttpStatus> deleteCourse(@PathVariable("id") int id) { // Parameter is int
     try {
       courseRepository.deleteById(id);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -238,7 +216,7 @@ public class CourseController { // Renamed from TutorialController
     }
   }
 
-  @DeleteMapping("/courses") // Updated endpoint name
+  @DeleteMapping("/courses")
   public ResponseEntity<HttpStatus> deleteAllCourses() {
     try {
       courseRepository.deleteAll();

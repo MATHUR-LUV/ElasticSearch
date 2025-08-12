@@ -2,12 +2,11 @@ package com.bezkoder.spring.data.jpa.pagingsorting.model;
 
 import java.time.OffsetDateTime; // Use OffsetDateTime for ISO-8601 with timezone
 
-// Remove JPA annotations as we are not using a database
-// import jakarta.persistence.*;
+// Removed Elasticsearch and JPA annotations
 
 public class Course {
 
-  private String id; // Changed to String to match JSON IDs
+  private int id; // Changed to int
   private String title;
   private String description;
   private String category;
@@ -22,7 +21,8 @@ public class Course {
     // Default constructor for Jackson deserialization
   }
 
-  public Course(String id, String title, String description, String category, String type, String gradeRange,
+  // Constructor updated to use int for id
+  public Course(int id, String title, String description, String category, String type, String gradeRange,
                 int minAge, int maxAge, double price, OffsetDateTime nextSessionDate) {
     this.id = id;
     this.title = title;
@@ -36,13 +36,12 @@ public class Course {
     this.nextSessionDate = nextSessionDate;
   }
 
-  // Getters and Setters
-
-  public String getId() {
+  // Getters and Setters updated to use int for id
+  public int getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(int id) {
     this.id = id;
   }
 
