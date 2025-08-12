@@ -345,9 +345,12 @@
             fetchCourses();
         });
 
-        // Sort Direction (re-fetches courses on change)
+        // Sort Direction
         sortAscButton.addEventListener('click', () => {
             state.sortDirection = 'asc';
+            state.sortBy = 'id'; // ✨ NEW: Force sort by ID when ASC button is clicked
+            sortBySelect.value = 'id'; // ✨ NEW: Update the dropdown to reflect 'ID' selection
+
             // Update button styles to indicate active sort direction
             sortAscButton.classList.add('btn-primary');
             sortAscButton.classList.remove('btn-secondary');
